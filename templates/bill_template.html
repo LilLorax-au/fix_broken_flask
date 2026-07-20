@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Bill for Order #{{ order.id }}</h1>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Order Details</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Table:</strong> {{ order.table_number }}</p>
+            <p><strong>Time:</strong> {{ order.timestamp }}</p>
+            <p><strong>Status:</strong> {{ order.status }}</p>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Items</h5>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>${{ item.price }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <!-- Bug: Potential incorrect subtotal display -->
+                        <td>${{ item.subtotal }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Summary</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-8 text-end">Subtotal:</div>
+                <div class="col-4">${{ total }}</div>
+            </div>
+            <div class="row">
+                <div class="col-8 text-end">Tax (10%):</div>
+                <div class="col-4">${{ tax }}</div>
+            </div>
+            <div class="row">
+                <div class="col-8 text-end"><strong>Total:</strong></div>
+                <!-- Bug: Potential incorrect total display -->
+                <div class="col-4"><strong>${{ total + tax }}</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('view_orders') }}" class="btn btn-primary">Back to Orders</a>
+        <button class="btn btn-success" onclick="window.print()">Print Bill</button>
+    </div>
+</div>
+{% endblock %}

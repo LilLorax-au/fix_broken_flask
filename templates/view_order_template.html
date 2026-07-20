@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Order #{{ order.id }}</h1>
+    <div class="row mb-3">
+        <div class="col">
+            <p><strong>Table:</strong> {{ order.table_number }}</p>
+            <p><strong>Status:</strong> {{ order.status }}</p>
+            <p><strong>Time:</strong> {{ order.timestamp }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Order Items</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>${{ item.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <!-- Bug: Potential missing subtotal calculation -->
+                                <td>${{ item.subtotal }}</td>
+                                <td>
+                                    <!-- Bug: Incorrect parameter (item_index vs item ID) -->
+                                    <a href="{{ url_for('remove_item_from_order', order_id=order.id, item_index=loop.index0) }}" class="btn btn-sm btn-danger">Remove</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                {% if order.status == 'open' %}
+                <a href="{{ url_for('close_order', order_id=order.id) }}" class="btn btn-success">Close Order</a>
+                {% else %}
+                <a href="{{ url_for('view_bill', order_id=order.id) }}" class="btn btn-info">View Bill</a>
+                {% endif %}
+                <a href="{{ url_for('view_orders') }}" class="btn btn-secondary">Back to Orders</a>
+            </div>
+        </div>
+
+        {% if order.status == 'open' %}
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Add Item</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('add_item_to_order', order_id=order.id) }}">
+                        <div class="mb-3">
+                            <label for="item_id" class="form-label">Menu Item</label>
+                            <select class="form-select" id="item_id" name="item_id" required>
+                                <option value="">Select item</option>
+                                <optgroup label="Appetizers">
+                                    {% for item in menu.appetizers %}
+                                    <option value="{{ item.id }}">{{ item.name }} - ${{ item.price }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="Main Courses">
+                                    {% for item in menu.main_courses %}
+                                    <option value="{{ item.id }}">{{ item.name }} - ${{ item.price }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="Desserts">
+                                    {% for item in menu.desserts %}
+                                    <option value="{{ item.id }}">{{ item.name }} - ${{ item.price }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                <optgroup label="Drinks">
+                                    {% for item in menu.drinks %}
+                                    <option value="{{ item.id }}">{{ item.name }} - ${{ item.price }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Item</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Restaurant Menu</h1>
+    <div class="mb-3">
+        <a href="{{ url_for('add_menu_item') }}" class="btn btn-success">Add New Item</a>
+    </div>
+
+    <div class="accordion" id="menuAccordion">
+        <!-- Appetizers -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#appetizersCollapse">
+                    Appetizers
+                </button>
+            </h2>
+            <div id="appetizersCollapse" class="accordion-collapse collapse show" data-bs-parent="#menuAccordion">
+                <div class="accordion-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in menu.appetizers %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>${{ item.price }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_menu_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                    <!-- Bug: The delete route is missing -->
+                                    <a href="{{ url_for('delete_menu_item', item_id=item.id) }}" class="btn btn-sm btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Courses -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mainCoursesCollapse">
+                    Main Courses
+                </button>
+            </h2>
+            <div id="mainCoursesCollapse" class="accordion-collapse collapse" data-bs-parent="#menuAccordion">
+                <div class="accordion-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in menu.main_courses %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>${{ item.price }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_menu_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                    <!-- Bug: The delete route is missing -->
+                                    <a href="{{ url_for('delete_menu_item', item_id=item.id) }}" class="btn btn-sm btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Desserts -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dessertsCollapse">
+                    Desserts
+                </button>
+            </h2>
+            <div id="dessertsCollapse" class="accordion-collapse collapse" data-bs-parent="#menuAccordion">
+                <div class="accordion-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in menu.desserts %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>${{ item.price }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_menu_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                    <!-- Bug: The delete route is missing -->
+                                    <a href="{{ url_for('delete_menu_item', item_id=item.id) }}" class="btn btn-sm btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drinks -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#drinksCollapse">
+                    Drinks
+                </button>
+            </h2>
+            <div id="drinksCollapse" class="accordion-collapse collapse" data-bs-parent="#menuAccordion">
+                <div class="accordion-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in menu.drinks %}
+                            <tr>
+                                <td>{{ item.name }}</td>
+                                <td>${{ item.price }}</td>
+                                <td>
+                                    <a href="{{ url_for('edit_menu_item', item_id=item.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                    <!-- Bug: The delete route is missing -->
+                                    <a href="{{ url_for('delete_menu_item', item_id=item.id) }}" class="btn btn-sm btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

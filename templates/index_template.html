@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Welcome to Restaurant Manager</h1>
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Menu Management</h5>
+                    <p class="card-text">View and manage your restaurant menu items.</p>
+                    <a href="{{ url_for('view_menu') }}" class="btn btn-primary">View Menu</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order Management</h5>
+                    <p class="card-text">Create and manage customer orders.</p>
+                    <a href="{{ url_for('view_orders') }}" class="btn btn-primary">View Orders</a>
+                    <a href="{{ url_for('new_order') }}" class="btn btn-success">New Order</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

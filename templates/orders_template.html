@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Orders</h1>
+    <div class="mb-3">
+        <a href="{{ url_for('new_order') }}" class="btn btn-success">New Order</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Open Orders</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Table</th>
+                        <th>Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        {% if order.status == 'open' %}
+                        <tr>
+                            <td>{{ order.id }}</td>
+                            <td>{{ order.table_number }}</td>
+                            <!-- Bug: Timestamp format issue -->
+                            <td>{{ order.timestamp }}</td>
+                            <td>
+                                <a href="{{ url_for('view_order', order_id=order.id) }}" class="btn btn-sm btn-primary">View</a>
+                                <a href="{{ url_for('close_order', order_id=order.id) }}" class="btn btn-sm btn-success">Close</a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-6">
+            <h3>Closed Orders</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Table</th>
+                        <th>Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        {% if order.status == 'closed' %}
+                        <tr>
+                            <td>{{ order.id }}</td>
+                            <td>{{ order.table_number }}</td>
+                            <!-- Bug: Timestamp format issue -->
+                            <td>{{ order.timestamp }}</td>
+                            <td>
+                                <a href="{{ url_for('view_bill', order_id=order.id) }}" class="btn btn-sm btn-info">Bill</a>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
