@@ -14,10 +14,12 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import json
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 
 app = Flask(__name__)
-# Missing secret key - this will cause session issues
-# app.secret_key = 'restaurant_secret_key'
+# load sec key assuing session security
+load_dotenv()
+app.secret_key = os.getenv("SEC_KEY") 
 
 # Global variables to store data (instead of a database)
 MENU_FILE = 'menu.json'
@@ -25,11 +27,11 @@ ORDERS_FILE = 'orders.json'
 
 # Initialize data storage
 def initialize_data():
-    # Bug: This function doesn't check if files exist before loading
+    # Bug: This function doesn't check if files exist before loading (ISAAC: this handles files not existing already just fine. a improvment could be checking JSON validity to be as expexted, if not use default. But ill keep this as it is for now) 
     try:
         with open(MENU_FILE, 'r') as f:
             menu = json.load(f)
-    except:
+    except FileNotFoundError:
         # Default menu if file doesn't exist
         menu = {
             'appetizers': [
@@ -55,7 +57,7 @@ def initialize_data():
     try:
         with open(ORDERS_FILE, 'r') as f:
             orders = json.load(f)
-    except:
+    except FileNotFoundError:
         # Default empty orders if file doesn't exist
         orders = []
         with open(ORDERS_FILE, 'w') as f:
@@ -67,13 +69,13 @@ def initialize_data():
 menu, orders = initialize_data()
 
 # Bug: Missing function to save data back to JSON files
-# def save_data(data_type, data):
-#     if data_type == 'menu':
-#         with open(MENU_FILE, 'w') as f:
-#             json.dump(data, f)
-#     elif data_type == 'orders':
-#         with open(ORDERS_FILE, 'w') as f:
-#             json.dump(data, f)
+def save_data(data_type, data):
+    if data_type == 'menu':
+        with open(MENU_FILE, 'w') as f:
+            json.dump(data, f)
+    elif data_type == 'orders':
+        with open(ORDERS_FILE, 'w') as f:
+            json.dump(data, f)
 
 # Home route
 @app.route('/')
