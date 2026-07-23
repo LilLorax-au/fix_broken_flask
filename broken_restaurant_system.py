@@ -68,6 +68,7 @@ def initialize_data():
 # Load initial data
 menu, orders = initialize_data()
 
+# Unsure if this needs more yet, will check again after vairfing other fucntion problems
 # Bug: Missing function to save data back to JSON files
 def save_data(data_type, data):
     if data_type == 'menu':
