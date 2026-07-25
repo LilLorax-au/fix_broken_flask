@@ -89,14 +89,13 @@ def view_menu():
     # Bug: Doesn't refresh menu data from file
     return render_template('menu.html', menu=menu)
 
-# Bug: This route has a typo in path - should be '/menu/add'
-@app.route('/meu/add', methods=['GET', 'POST'])
+@app.route('/menu/add', methods=['GET', 'POST'])
 def add_menu_item():
     if request.method == 'POST':
         # Bug: Missing category validation
         category = request.form.get('category')
         name = request.form.get('name')
-        price = request.form.get('price')
+        price = float(request.form.get('price', -1, float))
         
         # Bug: No validation for price being a number
         
@@ -124,14 +123,36 @@ def edit_menu_item(item_id):
     # Find the item
     item = None
     category = None
+    found: bool = False
     
-    # Bug: Inefficient search algorithm
+    # --Bug: Inefficient search algorithm--
+    # In this case, a small group of items such as items that could apear on menu,
+    # a simple linear search is completely fine/ the most appropriate, but for the
+    # sake of the request ill implement a binary search
+    
+
+
     for cat in menu:
-        for i in menu[cat]:
-            if i['id'] == item_id:
-                item = i
-                category = cat
-                break
+        if menu[cat][0]['id'] <= item_id and menu[cat][-1]['id'] <= item_id:
+            category = cat
+            min = 0
+            max = len(menu[cat])
+            
+            while min <= max:
+                mid = (min + max) // 2
+
+                if menu[cat][mid]['id'] == item_id:
+                    item = menu[cat][mid]
+                    
+
+            for i in menu[cat]:
+                if i['id'] == item_id:
+                    item = i
+                    category = cat
+                    found = True
+                    break
+        if found:
+            break
     
     if item is None:
         flash('Item not found')
@@ -150,19 +171,19 @@ def edit_menu_item(item_id):
     
     return render_template('edit_menu_item.html', item=item)
 
-# Bug: This route is completely missing
-# @app.route('/menu/delete/<int:item_id>')
-# def delete_menu_item(item_id):
-#     # Find and remove the item
-#     for cat in menu:
-#         for i in range(len(menu[cat])):
-#             if menu[cat][i]['id'] == item_id:
-#                 menu[cat].pop(i)
-#                 save_data('menu', menu)
-#                 return redirect(url_for('view_menu'))
-#     
-#     flash('Item not found')
-#     return redirect(url_for('view_menu'))
+
+@app.route('/menu/delete/<int:item_id>')
+def delete_menu_item(item_id):
+    # Find and remove the item
+    for cat in menu:
+        for i in range(len(menu[cat])):
+            if menu[cat][i]['id'] == item_id:
+                menu[cat].pop(i)
+                save_data('menu', menu)
+                return redirect(url_for('view_menu'))
+    
+    flash('Item not found')
+    return redirect(url_for('view_menu'))
 
 # Order routes
 @app.route('/orders')
@@ -188,11 +209,9 @@ def new_order():
         }
         
         orders.append(new_order)
-        # Bug: Doesn't save updated orders to file
-        # save_data('orders', orders)
+        save_data('orders', orders)
         
-        # Bug: Incorrect redirect
-        return redirect('/order/' + str(new_order['id']))
+        return redirect(url_for('view_order', order_id = new_order['id']))
     
     return render_template('new_order.html')
 
