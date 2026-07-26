@@ -208,8 +208,10 @@ def view_orders():
 @app.route('/order/new', methods=['GET', 'POST'])
 def new_order():
     if request.method == 'POST':
-        # Bug: Missing form validation
-        table_number = request.form.get('table_number')
+        table_number = request.form.get('table_number', -1, int)
+        if table_number < 1:
+            flash(f"Table number cannot be less then 1")
+            redirect(url_for("new_order"))
         
         # Create new order
         new_order = {
@@ -217,8 +219,7 @@ def new_order():
             'table_number': table_number,
             'items': [],
             'status': 'open',
-            # Bug: Wrong date format
-            'timestamp': str(datetime.now()),
+            'timestamp': str(datetime.now().strftime("%d-%m-%y %H:%M")),
             'total': 0
         }
         
