@@ -27,7 +27,10 @@ ORDERS_FILE = 'orders.json'
 
 # Initialize data storage
 def initialize_data():
-    # Bug: This function doesn't check if files exist before loading (ISAAC: this handles files not existing already just fine. a improvment could be checking JSON validity to be as expexted, if not use default. But ill keep this as it is for now) 
+    # Bug: This function doesn't check if files exist before loading 
+    # (ISAAC: this handles files not existing already just fine. 
+    # An improvment could be checking JSON validity to be as expexted, 
+    # if not use default. But ill keep this as it is for now) 
     try:
         with open(MENU_FILE, 'r') as f:
             menu = json.load(f)
@@ -68,8 +71,7 @@ def initialize_data():
 # Load initial data
 menu, orders = initialize_data()
 
-# Unsure if this needs more yet, will check again after vairfing other fucntion problems
-# Bug: Missing function to save data back to JSON files
+# Save data to file + reload 
 def save_data(data_type, data):
     if data_type == 'menu':
         with open(MENU_FILE, 'w') as f:
@@ -86,7 +88,8 @@ def home():
 # Menu routes
 @app.route('/menu')
 def view_menu():
-    # Bug: Doesn't refresh menu data from file
+    # alittle ducktapy, but mets need for now
+    menu = initialize_data()[0]
     return render_template('menu.html', menu=menu)
 
 @app.route('/menu/add', methods=['GET', 'POST'])
@@ -97,8 +100,10 @@ def add_menu_item():
         name = request.form.get('name')
         price = float(request.form.get('price', -1, float))
         
-        # Bug: No validation for price being a number
-        
+        if price < 0:
+            flash("Price must be a number, and must be positve")
+            return redirect(url_for("add_menu_item"))
+                
         # Generate new ID (bug: doesn't check existing IDs)
         new_id = len(menu['appetizers']) + len(menu['main_courses']) + len(menu['desserts']) + len(menu['drinks']) + 1
         
@@ -119,41 +124,24 @@ def add_menu_item():
     return render_template('add_menu_item.html')
 
 @app.route('/menu/edit/<int:item_id>', methods=['GET', 'POST'])
-def edit_menu_item(item_id):
+def edit_menu_item(item_id: int):
     # Find the item
-    item = None
+    item: dict | None = None
+    item_index: int
     category = None
-    found: bool = False
     
-    # --Bug: Inefficient search algorithm--
     # In this case, a small group of items such as items that could apear on menu,
     # a simple linear search is completely fine/ the most appropriate, but for the
-    # sake of the request ill implement a binary search
+    # sake of the request ill implement a linear-binary search hybrid
     
-
-
     for cat in menu:
         if menu[cat][0]['id'] <= item_id and menu[cat][-1]['id'] <= item_id:
             category = cat
-            min = 0
-            max = len(menu[cat])
-            
-            while min <= max:
-                mid = (min + max) // 2
+            item_index = binary_search(item_id, menu[cat],'id')
 
-                if menu[cat][mid]['id'] == item_id:
-                    item = menu[cat][mid]
-                    
+            if item_index != -1:
+                item = menu[cat][item_index]
 
-            for i in menu[cat]:
-                if i['id'] == item_id:
-                    item = i
-                    category = cat
-                    found = True
-                    break
-        if found:
-            break
-    
     if item is None:
         flash('Item not found')
         return redirect(url_for('view_menu'))
@@ -291,17 +279,13 @@ def remove_item_from_order(order_id, item_index):
         flash('Order not found')
         return redirect(url_for('view_orders'))
     
-    # Bug: No bounds checking
-    # Bug: Doesn't update order total
-    # subtotal = order['items'][item_index]['subtotal']
-    # order['total'] -= subtotal
+    subtotal = order['items'][item_index]['subtotal']
+    order['total'] -= subtotal
     
     # Remove item
-    # Bug: Incorrect list indexing
-    order['items'].remove(item_index)
-    
-    # Bug: Doesn't save updated orders to file
-    # save_data('orders', orders)
+    order['items'].pop(item_index)
+
+    save_data('orders', orders)
     
     return redirect(url_for('view_order', order_id=order_id))
 
@@ -321,8 +305,7 @@ def close_order(order_id):
     # Bug: Doesn't recalculate total before closing
     order['status'] = 'closed'
     
-    # Bug: Doesn't save updated orders to file
-    # save_data('orders', orders)
+    save_data('orders', orders)
     
     return redirect(url_for('view_bill', order_id=order_id))
 
@@ -353,6 +336,33 @@ def view_bill(order_id):
     tax = total * 0.1  # 10% tax
     
     return render_template('bill.html', order=order, tax=tax, total=total)
+
+def binary_search(target_value: int, data: list, target_key) -> int:
+    low = 0
+    high = len(data) - 1
+
+    while low <= high:
+        mid = (low + high) // 2
+    
+        if data[mid][target_key] == target_value:
+            return mid
+        elif data[mid][target_key] > target_value:
+            high = mid -1
+        else:
+            low = mid + 1
+    return -1
+
+def create_new_id():
+    new_id: int = 0
+    
+    for cat in menu:
+        for e in menu[cat]:
+            if e['id'] > new_id:
+                new_id = e['id']
+
+    return new_id
+ 
+
 
 # Run the application
 if __name__ == '__main__':
