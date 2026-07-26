@@ -175,11 +175,8 @@ def edit_menu_item(item_id: int):
         if price < 0:
             flash("Price must be a number, and must be positve")
             return redirect(url_for("edit_menu_item", item_id = item_id))
-        
-
-
+    
         item['name'] = name
-        
         item['price'] = price
         
         save_data('menu', menu)
@@ -193,11 +190,11 @@ def edit_menu_item(item_id: int):
 def delete_menu_item(item_id):
     # Find and remove the item
     for cat in menu:
-        for i in range(len(menu[cat])):
-            if menu[cat][i]['id'] == item_id:
-                menu[cat].pop(i)
-                save_data('menu', menu)
-                return redirect(url_for('view_menu'))
+        if menu[cat][0]['id'] <= item_id and menu[cat][-1]['id'] <= item_id:           
+            item_index = binary_search(item_id, menu[cat], 'id')
+            menu[cat].pop(item_index)
+            save_data('menu', menu)
+            return redirect(url_for('view_menu'))
     
     flash('Item not found')
     return redirect(url_for('view_menu'))
@@ -205,7 +202,7 @@ def delete_menu_item(item_id):
 # Order routes
 @app.route('/orders')
 def view_orders():
-    # Bug: Doesn't refresh orders data from file
+    orders = initialize_data()[1]
     return render_template('orders.html', orders=orders)
 
 @app.route('/order/new', methods=['GET', 'POST'])
