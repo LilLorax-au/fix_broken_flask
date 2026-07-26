@@ -337,7 +337,11 @@ def close_order(order_id):
         flash('Order not found')
         return redirect(url_for('view_orders'))
     
-    # Bug: Doesn't recalculate total before closing
+    # Unsure why this is asked as it is handled by other funcs, but at least this defines it before bill view
+    order['total'] = 0
+    for item in order['items']:
+        order['total'] += item['subtotal']
+
     order['status'] = 'closed'
     
     save_data('orders', orders)
@@ -357,20 +361,10 @@ def view_bill(order_id):
         flash('Order not found')
         return redirect(url_for('view_orders'))
     
-    # Bug: Total calculation is missing or incorrect
-    # Calculate total (bug: should be done when adding/removing items)
-    total = 0
-    for item in order['items']:
-        # Bug: Doesn't check if keys exist
-        total += item['price'] * item['quantity']
     
-    # Bug: Doesn't update order total
-    # order['total'] = total
+    tax = order['total'] * 0.1  # 10% tax
     
-    # Bug: Tax calculation is incorrect
-    tax = total * 0.1  # 10% tax
-    
-    return render_template('bill.html', order=order, tax=tax, total=total)
+    return render_template('bill.html', order=order, tax=tax, total=order['total'])
 
 def binary_search(target_value: int, data: list, target_key) -> int:
     low = 0
