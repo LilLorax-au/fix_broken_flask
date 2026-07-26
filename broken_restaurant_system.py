@@ -94,30 +94,43 @@ def view_menu():
 
 @app.route('/menu/add', methods=['GET', 'POST'])
 def add_menu_item():
+    name_max: int = 80
+
     if request.method == 'POST':
-        # Bug: Missing category validation
-        category = request.form.get('category')
-        name = request.form.get('name')
-        price = float(request.form.get('price', -1, float))
         
+        category = request.form.get('category')
+        if not category:
+            flash(f"Category cannot be black, options are: {menu.keys()}")
+            return redirect(url_for("add_menu_item"))
+
+        if category not in menu.keys():
+            flash(f"{category} does not exist, options are: {menu.keys()}")
+            return redirect(url_for("add_menu_item"))
+
+        name = request.form.get('name')
+        if not name:
+            flash(f"Name cannot be blank")
+            return redirect(url_for("add_menu_item"))
+
+        elif len(name) > name_max:
+            flash(f"{name} is to long, max is: {name_max}")
+            return redirect(url_for("add_menu_item"))
+
+        price = float(request.form.get('price', -1, float)) 
         if price < 0:
             flash("Price must be a number, and must be positve")
             return redirect(url_for("add_menu_item"))
                 
-        # Generate new ID (bug: doesn't check existing IDs)
-        new_id = len(menu['appetizers']) + len(menu['main_courses']) + len(menu['desserts']) + len(menu['drinks']) + 1
+        new_id = create_new_id()
         
-        # Bug: Incorrectly adds item to menu
         menu[category].append({
             'id': new_id,
             'name': name,
-            # Bug: Doesn't convert price to float
             'price': price,
             'category': category
         })
         
-        # Bug: Doesn't save updated menu to file
-        # save_data('menu', menu)
+        save_data('menu', menu)
         
         return redirect(url_for('view_menu'))
     
