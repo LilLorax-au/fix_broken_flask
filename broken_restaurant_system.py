@@ -160,13 +160,29 @@ def edit_menu_item(item_id: int):
         return redirect(url_for('view_menu'))
     
     if request.method == 'POST':
-        # Bug: Missing validation
-        item['name'] = request.form.get('name')
-        # Bug: Doesn't convert price to float
-        item['price'] = request.form.get('price')
+        name_max: int = 80
+
+        name: str = request.form.get('name', "", str)
+        if not name:
+            flash(f"Name cannot be blank")
+            return redirect(url_for("edit_menu_item", item_id = item_id))
+
+        elif len(name) > name_max:
+            flash(f"{name} is to long, max is: {name_max}")
+            return redirect(url_for("edit_menu_item", item_id = item_id))
+
+        price: float = request.form.get('price', -1, float)
+        if price < 0:
+            flash("Price must be a number, and must be positve")
+            return redirect(url_for("edit_menu_item", item_id = item_id))
         
-        # Bug: Missing save to file
-        # save_data('menu', menu)
+
+
+        item['name'] = name
+        
+        item['price'] = price
+        
+        save_data('menu', menu)
         
         return redirect(url_for('view_menu'))
     
