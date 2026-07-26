@@ -148,12 +148,13 @@ def edit_menu_item(item_id: int):
     # sake of the request ill implement a linear-binary search hybrid
     
     for cat in menu:
-        if menu[cat][0]['id'] <= item_id and menu[cat][-1]['id'] <= item_id:
+        if menu[cat][0]['id'] <= item_id and menu[cat][-1]['id'] >= item_id:
             category = cat
             item_index = binary_search(item_id, menu[cat],'id')
 
             if item_index != -1:
                 item = menu[cat][item_index]
+            break
 
     if item is None:
         flash('Item not found')
@@ -190,7 +191,7 @@ def edit_menu_item(item_id: int):
 def delete_menu_item(item_id):
     # Find and remove the item
     for cat in menu:
-        if menu[cat][0]['id'] <= item_id and menu[cat][-1]['id'] <= item_id:           
+        if menu[cat][0]['id'] <= item_id and menu[cat][-1]['id'] >= item_id:           
             item_index = binary_search(item_id, menu[cat], 'id')
             menu[cat].pop(item_index)
             save_data('menu', menu)
@@ -247,8 +248,8 @@ def view_order(order_id):
 
 @app.route('/order/<int:order_id>/add_item', methods=['POST'])
 def add_item_to_order(order_id):
-    # Bug: Missing checking if order exists
-    item_id = int(request.form.get('item_id'))
+    
+    item_id = int(request.form.get('item_id', -1, int))
     quantity = int(request.form.get('quantity', 1))
     
     # Find the order
@@ -265,31 +266,38 @@ def add_item_to_order(order_id):
     # Find the menu item
     item = None
     for cat in menu:
-        for i in menu[cat]:
-            if i['id'] == item_id:
-                item = i
-                break
-    
+        if menu[cat][0]['id'] <= item_id and menu[cat][-1]['id'] >= item_id:           
+            item_index = binary_search(item_id, menu[cat], 'id')
+            
+            if item_index != -1:
+                item = menu[cat][item_index]
+            break
+         
     if item is None:
         flash('Menu item not found')
         return redirect(url_for('view_order', order_id=order_id))
     
     # Add item to order
-    # Bug: Doesn't check if item already exists in order to update quantity
-    order['items'].append({
-        'id': item['id'],
-        'name': item['name'],
-        'price': item['price'],
-        'quantity': quantity,
-        # Bug: Incorrect calculation
-        'subtotal': item['price'] * quantity
-    })
+    item_order_index = check_item_in_order(item_id, order)
+
+    if item_order_index == 0:
+        order_item = order['items'][item_order_index]
+        order_item['quantity'] += quantity
+        order_item['subtotal'] = order_item['price'] * order_item['quantity']
+
+    else:
+        order['items'].append({
+            'id': item['id'],
+            'name': item['name'],
+            'price': item['price'],
+            'quantity': quantity,
+            'subtotal': item['price'] * quantity
+        })
+        
     
-    # Bug: Doesn't update order total
-    # order['total'] += item['price'] * quantity
+    order['total'] += item['price'] * quantity
     
-    # Bug: Doesn't save updated orders to file
-    # save_data('orders', orders)
+    save_data('orders', orders)
     
     return redirect(url_for('view_order', order_id=order_id))
 
@@ -388,9 +396,12 @@ def create_new_id():
                 new_id = e['id']
 
     return new_id
- 
 
-
+def check_item_in_order(item_id: int, order: dict):
+    for i, item in enumerate(order['item']):
+        if item['id'] == item_id:
+            return i
+    return 0
 # Run the application
 if __name__ == '__main__':
     app.run(debug=True)
