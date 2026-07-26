@@ -29,7 +29,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in order.items %}
+                            {% for item in order['items'] %}
                             <tr>
                                 <td>{{ item.name }}</td>
                                 <td>${{ item.price }}</td>
@@ -38,7 +38,7 @@
                                 <td>${{ item.subtotal }}</td>
                                 <td>
                                     <!-- Bug: Incorrect parameter (item_index vs item ID) -->
-                                    <a href="{{ url_for('remove_item_from_order', order_id=order.id, item_index=loop.index0) }}" class="btn btn-sm btn-danger">Remove</a>
+                                    <a href="{{ url_for('remove_item_from_order', order_id=order.id, item_index=item.id) }}" class="btn btn-sm btn-danger">Remove</a>
                                 </td>
                             </tr>
                             {% endfor %}

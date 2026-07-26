@@ -8,6 +8,10 @@ Bugs include:
 - Missing functionality
 - Incorrect data handling
 - Template rendering issues
+
+Fixed: by Isaac M.D. Brown
+Date: 27/07/26
+
 '''
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
@@ -79,6 +83,7 @@ def save_data(data_type, data):
     elif data_type == 'orders':
         with open(ORDERS_FILE, 'w') as f:
             json.dump(data, f)
+    menu, orders = initialize_data()
 
 # Home route
 @app.route('/')
@@ -116,7 +121,7 @@ def add_menu_item():
             flash(f"{name} is to long, max is: {name_max}")
             return redirect(url_for("add_menu_item"))
 
-        price = float(request.form.get('price', -1, float)) 
+        price = float(request.form.get('price', -1.0, float))
         if price < 0:
             flash("Price must be a number, and must be positve")
             return redirect(url_for("add_menu_item"))
@@ -172,7 +177,7 @@ def edit_menu_item(item_id: int):
             flash(f"{name} is to long, max is: {name_max}")
             return redirect(url_for("edit_menu_item", item_id = item_id))
 
-        price: float = request.form.get('price', -1, float)
+        price: float = request.form.get('price', -1.0, float)
         if price < 0:
             flash("Price must be a number, and must be positve")
             return redirect(url_for("edit_menu_item", item_id = item_id))
@@ -212,7 +217,7 @@ def new_order():
         table_number = request.form.get('table_number', -1, int)
         if table_number < 1:
             flash(f"Table number cannot be less then 1")
-            redirect(url_for("new_order"))
+            return redirect(url_for("new_order"))
         
         # Create new order
         new_order = {
@@ -274,13 +279,13 @@ def add_item_to_order(order_id):
             break
          
     if item is None:
-        flash('Menu item not found')
+        flash(f'Menu item not found')
         return redirect(url_for('view_order', order_id=order_id))
     
     # Add item to order
     item_order_index = check_item_in_order(item_id, order)
 
-    if item_order_index == 0:
+    if item_order_index != -1:
         order_item = order['items'][item_order_index]
         order_item['quantity'] += quantity
         order_item['subtotal'] = order_item['price'] * order_item['quantity']
@@ -305,6 +310,7 @@ def add_item_to_order(order_id):
 def remove_item_from_order(order_id, item_index):
     # Find the order
     order = None
+    item = None
     for o in orders:
         if o['id'] == order_id:
             order = o
@@ -313,13 +319,14 @@ def remove_item_from_order(order_id, item_index):
     if order is None:
         flash('Order not found')
         return redirect(url_for('view_orders'))
-    
-    subtotal = order['items'][item_index]['subtotal']
-    order['total'] -= subtotal
-    
-    # Remove item
-    order['items'].pop(item_index)
 
+    for i, item in enumerate(order['items']):
+        if item['id'] == item_index:
+            order['total'] -= item['subtotal']
+            order['items'].pop(i)
+            break
+
+    
     save_data('orders', orders)
     
     return redirect(url_for('view_order', order_id=order_id))
@@ -389,13 +396,13 @@ def create_new_id():
             if e['id'] > new_id:
                 new_id = e['id']
 
-    return new_id
+    return new_id + 1
 
 def check_item_in_order(item_id: int, order: dict):
-    for i, item in enumerate(order['item']):
+    for i, item in enumerate(order['items']):
         if item['id'] == item_id:
             return i
-    return 0
+    return -1
 # Run the application
 if __name__ == '__main__':
     app.run(debug=True)
